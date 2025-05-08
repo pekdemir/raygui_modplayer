@@ -13,27 +13,25 @@ xmp_context ctx = NULL;
 static int playing = 0;
 
 //AudioCallback
-void fillBuffer(void *bufferData, unsigned int frames)
-{
-    if(xmp_play_buffer(ctx, bufferData, frames * sizeof(short) * NUM_CHANNEL, 0) < 0)
-    {
+void fillBuffer(void *bufferData, unsigned int frames) {
+    if (xmp_play_buffer(ctx, bufferData, frames * sizeof(short) * NUM_CHANNEL, 0) < 0) {
         playing = 0;
     }
 }
 
-int main()
-{
+int main() {
     
-    InitWindow(408, 360, "raygui - controls test suite");
+    InitWindow(408, 360, "raygui - mod player");
     SetTargetFPS(60);
-
     InitAudioDevice();
+    Image icon = LoadImage("../logo/raygui_64x64.png");
+    SetWindowIcon(icon);
 
     ctx = xmp_create_context();
 
-    if (xmp_load_module(ctx, "test.it") < 0) {
-            fprintf(stderr, "%s: error loading %s\n", "test", "test.it");
-            return 1;
+    if (xmp_load_module(ctx, "../mod/test.it") < 0) {
+        fprintf(stderr, "%s: error loading %s\n", "test", "test.it");
+        return 1;
     }
 
     struct xmp_module_info mi;
@@ -44,8 +42,6 @@ int main()
     SetAudioStreamCallback(stream, fillBuffer);
     xmp_start_player(ctx, 44100, 0);
 
-
-
     bool ButtonPrevPressed = false;
     bool ButtonPlayPausePressed = false;
     bool ButtonStopPressed = false;
@@ -54,10 +50,17 @@ int main()
     Rectangle ScrollPanelScrollView = { 0, 0, 0, 0 };
     Vector2 ScrollPanelScrollOffset = { 0, 0 };
     Vector2 ScrollPanelBoundsOffset = { 0, 0 };
-    //GuiLoadStyleCyber();
+    GuiLoadStyleCyber();
+    char mod_name[256];
+    char mod_len[256];
+    char mod_bpm[256];
+    char mod_type[256];
+    sprintf(mod_name, "Name: %s", mi.mod->name);
+    sprintf(mod_len,  "Pattern: %d", mi.mod->len);
+    sprintf(mod_bpm,  "BPM: %d", mi.mod->bpm);
+    sprintf(mod_type, "Type: %s", mi.mod->type);
 
-    while (!WindowShouldClose())
-    {
+    while (!WindowShouldClose()) {
         xmp_get_frame_info(ctx, &fi);
         // Draw
         //----------------------------------------------------------------------------------
@@ -67,10 +70,10 @@ int main()
             GuiGroupBox((Rectangle){ 0, 8, 216, 104 }, "Module Info");
             GuiGroupBox((Rectangle){ 216, 8, 192, 104 }, "Player");
             ButtonPrevPressed = GuiButton((Rectangle){ 240, 16, 24, 40 }, "#129#"); 
-            GuiLabel((Rectangle){ 8, 16, 120, 24 }, "SAMPLE TEXT");
-            GuiLabel((Rectangle){ 8, 40, 120, 24 }, "SAMPLE TEXT");
-            GuiLabel((Rectangle){ 8, 64, 120, 24 }, "SAMPLE TEXT");
-            GuiLabel((Rectangle){ 8, 88, 120, 24 }, "SAMPLE TEXT");
+            GuiLabel((Rectangle){ 8, 16, 150, 24 }, mod_name);
+            GuiLabel((Rectangle){ 8, 40, 150, 24 }, mod_type);
+            GuiLabel((Rectangle){ 8, 64, 150, 24 }, mod_bpm);
+            GuiLabel((Rectangle){ 8, 88, 150, 24 }, mod_len);
             ButtonPlayPausePressed = GuiButton((Rectangle){ 264, 16, 48, 40 }, playing ? "#132#" : "#131#"); 
             ButtonStopPressed = GuiButton((Rectangle){ 312, 16, 48, 40 }, "#133#"); 
             ButtonNextPressed = GuiButton((Rectangle){ 360, 16, 24, 40 }, "#134#"); 
@@ -80,25 +83,23 @@ int main()
             GuiStatusBar((Rectangle){ 0, 336, 408, 24 }, "Status");
 
 
-            if (ButtonPlayPausePressed) 
-            {
+            if (ButtonPlayPausePressed) {
                 // int result = GuiMessageBox((Rectangle){ 85, 70, 250, 100 },
                 //     "#191#Message Box", "Hi! This is a message!", "Nice;Cool");
 
                 // if (result >= 0) showMessageBox = false;
                 playing = !playing;
-                if (playing)
-                {
+                if (playing) {
                     PlayAudioStream(stream);
-                }
-                else
-                {
+                } else {
                     PauseAudioStream(stream);
                 }
             }
+            if (playing) {
+                
+            }
 
-            if (ButtonStopPressed)
-            {
+            if (ButtonStopPressed) {
                 StopAudioStream(stream);
                 xmp_stop_module(ctx);
                 xmp_restart_module(ctx);
